@@ -127,7 +127,7 @@ protected:
     ASSERT_NE(nullptr, client) << rmw_get_error_string().str;
     rmw_ret_t ret = RMW_RET_OK;
     if (!rmw_event_type_is_supported(RMW_EVENT_LIVELINESS_CHANGED)) {
-      ret = rmw_subscription_event_init(&event, sub, RMW_EVENT_PUBLICATION_MATCHED);
+      ret = rmw_subscription_event_init(&event, sub, RMW_EVENT_SUBSCRIPTION_MATCHED);
     } else {
       ret = rmw_subscription_event_init(&event, sub, RMW_EVENT_LIVELINESS_CHANGED);
     }
