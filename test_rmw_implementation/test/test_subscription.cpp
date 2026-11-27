@@ -506,7 +506,7 @@ TEST_F(TestSubscriptionUse, count_mismatched_subscriptions) {
   // the publisher and subscription will match and accordingly evaluate match counts.
   rmw_qos_compatibility_type_t compat;
   rmw_ret_t rmw_ret =
-    rmw_qos_profile_check_compatible(qos_profile, other_qos_profile, &compat, nullptr, 0);
+    rmw_qos_profile_check_compatible(other_qos_profile, qos_profile, &compat, nullptr, 0);
   ASSERT_EQ(rmw_ret, RMW_RET_OK);
 
   // TODO(hidmic): revisit when https://github.com/ros2/rmw/issues/264 is resolved.
