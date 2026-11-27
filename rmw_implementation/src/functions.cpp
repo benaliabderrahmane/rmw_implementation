@@ -811,7 +811,24 @@ RMW_INTERFACE_FN(
     const char *, rcutils_allocator_t *, rosidl_dynamic_typesupport_serialization_support_t *))
 
 
-#define GET_SYMBOL(x) symbol_ ## x = get_symbol(#x);
+// Prefetching is an optimization: a function the RMW does not export stays
+// unresolved here and is reported when it is called (CALL_SYMBOL), so a
+// successful rmw_init leaves no stale "failed to resolve symbol" error behind.
+static void *
+prefetch_symbol(const char * symbol_name)
+{
+  try {
+    std::shared_ptr<rcpputils::SharedLibrary> lib = get_library();
+    if (lib && lib->has_symbol(symbol_name)) {
+      return lib->get_symbol(symbol_name);
+    }
+  } catch (const std::exception &) {
+    // Left for CALL_SYMBOL to report when the function is called.
+  }
+  return nullptr;
+}
+
+#define GET_SYMBOL(x) symbol_ ## x = prefetch_symbol(#x);
 
 void prefetch_symbols(void)
 {

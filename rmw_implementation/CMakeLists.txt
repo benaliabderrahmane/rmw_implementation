@@ -77,7 +77,11 @@ else()
 
   if(BUILD_TESTING)
     find_package(ament_cmake_gtest REQUIRED)
-    ament_add_gtest(test_functions test/test_functions.cpp)
+    # An RMW library exporting almost none of the API, for the prefetch test.
+    add_library(test_partial_rmw SHARED test/partial_rmw.cpp)
+    ament_add_gtest(test_functions test/test_functions.cpp
+      APPEND_LIBRARY_DIRS "$<TARGET_FILE_DIR:test_partial_rmw>")
+    add_dependencies(test_functions test_partial_rmw)
     target_link_libraries(test_functions
       ${PROJECT_NAME}
       ament_cmake_ros_core::ament_ros_defaults

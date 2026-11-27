@@ -15,11 +15,13 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <string>
 
 #include "rcutils/env.h"
 #include "rcutils/testing/fault_injection.h"
 
 #include "rmw/error_handling.h"
+#include "rmw/rmw.h"
 
 #include "../src/functions.hpp"
 
@@ -58,4 +60,25 @@ TEST(Functions, load_and_lookup_with_internal_errors) {
 TEST(Functions, nominal_prefetch_and_unload) {
   prefetch_symbols();
   unload_library();
+}
+
+TEST(Functions, prefetch_leaves_no_error_for_missing_symbols) {
+  // test_partial_rmw stands in for an RMW without the functions newer than itself.
+  const char * rmw_implementation = nullptr;
+  ASSERT_EQ(nullptr, rcutils_get_env("RMW_IMPLEMENTATION", &rmw_implementation));
+  const std::string saved_rmw_implementation = rmw_implementation;
+  unload_library();
+  ASSERT_TRUE(rcutils_set_env("RMW_IMPLEMENTATION", "test_partial_rmw"));
+  rmw_reset_error();
+
+  prefetch_symbols();
+  EXPECT_FALSE(rmw_error_is_set()) << rmw_get_error_string().str;
+
+  // A missing function is still reported when it is called.
+  EXPECT_EQ(RMW_RET_ERROR, rmw_shutdown(nullptr));
+  EXPECT_TRUE(rmw_error_is_set());
+  rmw_reset_error();
+
+  unload_library();
+  EXPECT_TRUE(rcutils_set_env("RMW_IMPLEMENTATION", saved_rmw_implementation.c_str()));
 }
